@@ -1,4 +1,22 @@
-# Use postgres/example user/password credentials
+# Cal.diy — stack con imágenes pre-construidas:
+#   - Web:     jorgeortega593/calcom-cal.dy:6.2.0
+#   - API v2:  jorgeortega593/calcom-cal.dy-api:6.2.0
+#
+# El entrypoint de la imagen (scripts/start.sh) al arrancar el servicio `calcom`:
+#   1. Reemplaza la URL webapp grabada en el build por NEXT_PUBLIC_WEBAPP_URL
+#      en los assets estáticos.
+#   2. Espera a que DATABASE_HOST acepte conexiones.
+#   3. Aplica migraciones (prisma migrate deploy) y seed del app-store.
+#   4. Levanta la web en el puerto 3000 del contenedor.
+#
+# Variables leídas de .env (raíz del proyecto). docker compose las interpola
+# automáticamente en este archivo y además las inyecta al contenedor vía env_file.
+#
+# Notas:
+#   - Redis lo consume solo la API v2 (Bull/Throttler); la web usa Upstash
+#     REST con fallback Noop.
+#   - Los NEXT_PUBLIC_* se hornean en el build del cliente; en runtime solo se
+#     re-escribe NEXT_PUBLIC_WEBAPP_URL (el resto aplica del lado servidor).
 
 volumes:
   database-data:
@@ -12,127 +30,105 @@ networks:
 services:
   database:
     container_name: database
-    image: postgres
+    image: postgres:16
     restart: always
     volumes:
-      - database-data:/var/lib/postgresql
+      - database-data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=unicorn_user
-      - POSTGRES_PASSWORD=magical_password
-      - POSTGRES_DB=calendso
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     networks:
       - stack
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   redis:
     container_name: redis
-    image: redis:latest
+    image: redis:7-alpine
     restart: always
     volumes:
       - redis-data:/data
     networks:
       - stack
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   calcom:
-    image: calcom.docker.scarf.sh/calcom/cal.diy
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_WEBAPP_URL: ${NEXT_PUBLIC_WEBAPP_URL}
-        NEXT_PUBLIC_API_V2_URL: ${NEXT_PUBLIC_API_V2_URL}
-        NEXT_PUBLIC_LICENSE_CONSENT: ${NEXT_PUBLIC_LICENSE_CONSENT}
-        NEXT_PUBLIC_WEBSITE_TERMS_URL: ${NEXT_PUBLIC_WEBSITE_TERMS_URL}
-        NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL: ${NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL}
-        NEXT_PUBLIC_SINGLE_ORG_SLUG: ${NEXT_PUBLIC_SINGLE_ORG_SLUG}
-        ORGANIZATIONS_ENABLED: ${ORGANIZATIONS_ENABLED}
-        CALCOM_TELEMETRY_DISABLED: ${CALCOM_TELEMETRY_DISABLED}
-        NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-        CALENDSO_ENCRYPTION_KEY: ${CALENDSO_ENCRYPTION_KEY}
-        DATABASE_URL: ${DATABASE_URL}
-        DATABASE_DIRECT_URL: ${DATABASE_URL}
-        CSP_POLICY: ${CSP_POLICY}
+    container_name: calcom
+    image: jorgeortega593/calcom-cal.dy:6.2.0
     restart: always
     networks:
       - stack
-    ports:
-      - 3000:3000
+    expose:
+      - "3000"
     env_file: .env
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
-      - DATABASE_DIRECT_URL=${DATABASE_URL}
+      # Tienen prioridad sobre env_file: apuntan al servicio `database`
+      # dentro de la red interna de compose.
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      - DATABASE_DIRECT_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      - DATABASE_HOST=database
     depends_on:
-      - database
+      database:
+        condition: service_healthy
 
   calcom-api:
     container_name: calcom-api
-    build:
-      context: .
-      dockerfile: apps/api/v2/Dockerfile
-      args:
-        DATABASE_URL: ${DATABASE_URL}
-        DATABASE_DIRECT_URL: ${DATABASE_URL}
+    image: jorgeortega593/calcom-cal.dy-api:6.2.0
     restart: always
     networks:
       - stack
-    ports:
-      - "${API_PORT:-80}:${API_PORT:-80}"
+    expose:
+      - "${API_PORT:-80}"
     env_file: .env
     environment:
-      - NODE_ENV=${NODE_ENV}
+      - NODE_ENV=production
       - API_PORT=${API_PORT:-80}
-      - API_URL=${API_URL}
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
-      - DATABASE_READ_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
-      - DATABASE_WRITE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
-      - DATABASE_DIRECT_URL=${DATABASE_URL}
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - JWT_SECRET=${JWT_SECRET}
-      - REDIS_URL=${REDIS_URL}
-      - LOG_LEVEL=${LOG_LEVEL}
-      - API_KEY_PREFIX=${API_KEY_PREFIX}
-      - WEB_APP_URL=${WEB_APP_URL}
-      - IS_E2E=${IS_E2E:-false}
-      - REWRITE_API_V2_PREFIX=${REWRITE_API_V2_PREFIX:-true}
-      - CALCOM_LICENSE_KEY=${CALCOM_LICENSE_KEY}
-      - NEXT_PUBLIC_VAPID_PUBLIC_KEY=${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
-      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
-      - STRIPE_API_KEY=${STRIPE_API_KEY}
-      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
-      - STRIPE_PRICE_ID_STARTER=${STRIPE_PRICE_ID_STARTER}
-      - STRIPE_PRICE_ID_STARTER_OVERAGE=${STRIPE_PRICE_ID_STARTER_OVERAGE}
-      - STRIPE_PRICE_ID_ESSENTIALS=${STRIPE_PRICE_ID_ESSENTIALS}
-      - STRIPE_PRICE_ID_ESSENTIALS_OVERAGE=${STRIPE_PRICE_ID_ESSENTIALS_OVERAGE}
-      - STRIPE_PRICE_ID_ENTERPRISE=${STRIPE_PRICE_ID_ENTERPRISE}
-      - STRIPE_PRICE_ID_ENTERPRISE_OVERAGE=${STRIPE_PRICE_ID_ENTERPRISE_OVERAGE}
-      - STRIPE_TEAM_MONTHLY_PRICE_ID=${STRIPE_TEAM_MONTHLY_PRICE_ID}
-      - IS_TEAM_BILLING_ENABLED=${IS_TEAM_BILLING_ENABLED:-false}
-      - AXIOM_DATASET=${AXIOM_DATASET}
-      - AXIOM_TOKEN=${AXIOM_TOKEN}
-      - LOGGER_BRIDGE_LOG_LEVEL=${LOGGER_BRIDGE_LOG_LEVEL}
-      - DOCS_URL=${DOCS_URL}
-      - GET_LICENSE_KEY_URL=${GET_LICENSE_KEY_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      - DATABASE_READ_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      - DATABASE_WRITE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      - DATABASE_DIRECT_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379
+      - REWRITE_API_V2_PREFIX=1
     depends_on:
-      - database
-      - redis
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
-  # Optional use of Prisma Studio. In production, comment out or remove the section below to prevent unwanted access to your database.
+  # Opcional: Prisma Studio para inspeccionar la base de datos en :5555.
+  # No arranca con `docker compose up -d`; actívalo con:
+  #   docker compose --profile studio up -d studio
   studio:
-    image: calcom.docker.scarf.sh/calcom/cal.diy
-    restart: always
+    image: jorgeortega593/calcom-cal.dy:6.2.0
+    restart: unless-stopped
     networks:
       - stack
-    ports:
-      - 5555:5555
+    expose:
+      - "5555"
+    profiles: ["studio"]
     env_file: .env
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
-      - DATABASE_DIRECT_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      - DATABASE_DIRECT_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     command:
       - npx
       - prisma
       - studio
-# END SECTION: Optional use of Prisma Studio.
+      - --schema
+      - /calcom/prisma/schema.prisma
+      - --host
+      - 0.0.0.0
+      - --port
+      - "5555"
