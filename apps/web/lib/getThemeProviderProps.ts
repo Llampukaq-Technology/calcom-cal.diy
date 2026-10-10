@@ -26,9 +26,9 @@ export function getUniqueIdentifierForBookingPage({ pathname }: { pathname: stri
 
   // If it is a booking page then it could be one of the following:
   // User booking page e.g. /free and /free/30mins
-  // Team booking page e.g. /team/sales and /team/sales/30mins
+  // Team booking page e.g. /b/sales and /team/sales/30mins
   // Organization Team booking page e.g. /sales and /sales/30mins - Same pattern as User Booking Page
-  const startsWithTeam = pathTokens[0] === "team";
+  const startsWithTeam = pathTokens[0] === "b";
   const isPrivateBookingPage = pathTokens[0] === "d";
   const isDynamicBookingPage = pathTokens[0].toLowerCase().split(/\+|%2B/).length > 1;
   if (isPrivateBookingPage) {

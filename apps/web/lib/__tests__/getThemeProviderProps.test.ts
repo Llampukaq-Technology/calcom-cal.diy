@@ -112,7 +112,7 @@ describe("getThemeProviderProps", () => {
           ...fnArg.props,
           isBookingPage: true,
         },
-        pathname: "/team/sales/30min",
+        pathname: "/b/sales/30min",
       });
 
       expect(result.storageKey).toBe("booking-theme:sales");
@@ -204,8 +204,8 @@ describe("getUniqueIdentifierForBookingPage", () => {
 
   describe("Team Pages", () => {
     it.each([
-      { path: "/team/test", expected: "test" },
-      { path: "/team/test/anything", expected: "test" },
+      { path: "/b/test", expected: "test" },
+      { path: "/b/test/anything", expected: "test" },
     ])("should return $expected for $path", ({ path, expected }) => {
       const result = getUniqueIdentifierForBookingPage({ pathname: path });
       expect(result).toBe(expected);

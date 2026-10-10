@@ -2,6 +2,8 @@ import { CalendarsRepository } from "@/platform/calendars/calendars.repository";
 import { CalendarsCacheService } from "@/platform/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/platform/calendars/services/calendars.service";
 import { EventTypesController_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/controllers/event-types.controller";
+import { TeamsEventTypesController_2024_06_14 } from "@/modules/teams/event-types/controllers/teams-event-types.controller";
+import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { EventTypesRepository_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/event-types.repository";
 import { EventTypeResponseTransformPipe } from "@/platform/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
 import { EventTypesService_2024_06_14 } from "@/platform/event-types/event-types_2024_06_14/services/event-types.service";
@@ -45,8 +47,9 @@ import { Module } from "@nestjs/common";
     OutputTeamEventTypesResponsePipe,
     OutputTeamEventTypesService,
     TeamsEventTypesRepository,
+    TeamsEventTypesService,
   ],
-  controllers: [EventTypesController_2024_06_14],
+  controllers: [EventTypesController_2024_06_14, TeamsEventTypesController_2024_06_14],
   exports: [
     EventTypesService_2024_06_14,
     EventTypesRepository_2024_06_14,

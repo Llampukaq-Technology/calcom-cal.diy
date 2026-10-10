@@ -261,7 +261,7 @@ export default function Signup({
       if (!result.ok) {
         if (isUserAlreadyExistsError(result)) {
           showToast(t("account_already_exists_please_login"), "warning");
-          const callbackUrl = token ? `/teams?token=${token}` : "/event-types";
+          const callbackUrl = token ? `/teams/invite/${token}` : "/event-types";
           setTimeout(() => {
             router.push(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
           }, 3000);

@@ -83,7 +83,7 @@ export const extendEventData = (
     page_url: pageUrl,
     isTeamBooking:
       original?.isTeamBooking === undefined
-        ? pageUrl?.includes("team/") || undefined
+        ? pageUrl?.includes("/b/") || undefined
         : original?.isTeamBooking,
     referrer: "",
     onVercel,

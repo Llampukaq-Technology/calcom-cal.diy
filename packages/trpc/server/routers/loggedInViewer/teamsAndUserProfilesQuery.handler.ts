@@ -145,7 +145,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
     ...teamsData.map((membership, index) => ({
       teamId: membership.team.id,
       name: membership.team.name,
-      slug: membership.team.slug ? `team/${membership.team.slug}` : null,
+      slug: membership.team.slug ? `b/${membership.team.slug}` : null,
       image: membership.team?.parent
         ? getPlaceholderAvatar(membership.team.parent.logoUrl, membership.team.parent.name)
         : getPlaceholderAvatar(membership.team.logoUrl, membership.team.name),

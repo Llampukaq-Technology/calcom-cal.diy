@@ -40,5 +40,5 @@ export function createTeamSlug(
 ): string | null {
   if (!teamSlug) return null;
 
-  return hasParent ? teamSlug : `team/${teamSlug}`;
+  return hasParent ? teamSlug : `b/${teamSlug}`;
 }

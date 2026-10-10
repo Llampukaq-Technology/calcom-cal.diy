@@ -70,7 +70,7 @@ type RedirectResult = { redirect: { permanent: boolean; destination: string } };
 const mapEventType = (item: EventTypeFromDb): TEventType => {
   let teamSlug = "";
   if (item.team) {
-    teamSlug = `team/${item.team.slug}`;
+    teamSlug = `b/${item.team.slug}`;
   }
   const userSlug = item?.users?.[0]?.username;
   let urlPart = userSlug;

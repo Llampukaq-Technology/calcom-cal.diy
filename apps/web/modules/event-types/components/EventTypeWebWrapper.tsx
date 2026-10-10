@@ -176,7 +176,7 @@ const EventTypeWeb = ({
   const orgBranding = null as { id: number; [key: string]: unknown } | null;
 
   const bookerUrl = orgBranding ? "" : WEBSITE_URL;
-  const permalink = `${bookerUrl}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
+  const permalink = `${bookerUrl}/${team ? `b/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
   }`;
 

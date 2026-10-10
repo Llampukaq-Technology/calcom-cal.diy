@@ -61,7 +61,7 @@ export const EventMembers = ({
               isEmbed || isPlatform || isPrivateLink || entity.hideProfileLink
                 ? null
                 : entity.teamSlug
-                  ? `${WEBAPP_URL}/team/${entity.teamSlug}`
+                  ? `${WEBAPP_URL}/b/${entity.teamSlug}`
                   : WEBAPP_URL,
             image: entity.logoUrl ?? profile.image ?? "",
             alt: entity.name ?? profile.name ?? "",

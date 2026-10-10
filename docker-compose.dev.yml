@@ -1,0 +1,124 @@
+# Cal.diy — dev: todo en Docker (Postgres + Redis + web y API v2 con hot reload).
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#   -> web : http://localhost:3000   (apps/web, next dev --turbopack)
+#   -> api : http://localhost:3002   (apps/api/v2, nest start --watch)
+#
+# Hot reload: el repo se monta en bind mount, así que TODO lo que edites
+# (packages/*, apps/web, apps/api/v2) recompila al guardar — este compose
+# compila las características en edición, no usa imágenes pre-construidas.
+# node_modules y builds viven en volúmenes nombrados porque los bind-mounts
+# de Windows son lentos. La primera vez tarda: instala dependencias dentro
+# del contenedor (lo hace `web`; `api` espera a que acabe).
+# Para ver logs: docker compose -f docker-compose.dev.yml logs -f web api
+#
+# Postgres expuesto en 5433 del host (por si quieres psql/prisma studio
+# desde fuera); dentro de la red de compose la web usa database:5432.
+
+name: calcom-dev
+
+volumes:
+  database-data-dev:
+  redis-data-dev:
+  web-node-modules:
+  web-next:
+
+services:
+  database:
+    container_name: calcom-db-dev
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    volumes:
+      - database-data-dev:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-calcom}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-calcom}
+      - POSTGRES_DB=${POSTGRES_DB:-calcom}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-calcom} -d ${POSTGRES_DB:-calcom}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    container_name: calcom-redis-dev
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data-dev:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    container_name: calcom-web-dev
+    image: node:22-bookworm-slim
+    restart: unless-stopped
+    working_dir: /app
+    # yarn viene vendido en el repo (.yarn/releases), no depende de corepack ni red
+    command: >
+      sh -c "node .yarn/releases/yarn-4.12.0.cjs install &&
+             node .yarn/releases/yarn-4.12.0.cjs prisma generate &&
+             node .yarn/releases/yarn-4.12.0.cjs db-deploy &&
+             node .yarn/releases/yarn-4.12.0.cjs dev"
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - web-node-modules:/app/node_modules
+      - web-next:/app/apps/web/.next
+    environment:
+      # Override del .env montado: dentro de la red de compose el host
+      # es el servicio `database`, no localhost.
+      - DATABASE_URL=postgresql://calcom:5ccb2dacc1e2187014b68aa332dbe227@database:5432/calcom
+      - DATABASE_DIRECT_URL=postgresql://calcom:5ccb2dacc1e2187014b68aa332dbe227@database:5432/calcom
+      - NEXTAUTH_URL=http://localhost:3000
+      - WATCHPACK_POLLING=true
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+  api:
+    container_name: calcom-api-dev
+    image: node:22-bookworm-slim
+    restart: unless-stopped
+    working_dir: /app
+    # Depende de que `web` termine yarn install: comparten el mismo volumen
+    # de node_modules del monorepo. Compila y queda en watch (NestJS).
+    command: >
+      sh -c "while [ ! -d node_modules/@nestjs ] ; do sleep 5 ; done ;
+             node .yarn/releases/yarn-4.12.0.cjs prisma generate &&
+             node .yarn/releases/yarn-4.12.0.cjs workspace @calcom/api-v2 run dev"
+    ports:
+      - "3002:3002"
+    volumes:
+      - .:/app
+      - web-node-modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - API_PORT=3002
+      - DATABASE_URL=postgresql://calcom:5ccb2dacc1e2187014b68aa332dbe227@database:5432/calcom
+      - DATABASE_DIRECT_URL=postgresql://calcom:5ccb2dacc1e2187014b68aa332dbe227@database:5432/calcom
+      - DATABASE_READ_URL=postgresql://calcom:5ccb2dacc1e2187014b68aa332dbe227@database:5432/calcom
+      - DATABASE_WRITE_URL=postgresql://calcom:5ccb2dacc1e2187014b68aa332dbe227@database:5432/calcom
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_started
+    stdin_open: true
+    tty: true

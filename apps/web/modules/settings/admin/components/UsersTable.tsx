@@ -135,7 +135,7 @@ const LockStatusTable = ({
                   />
                   <div className="text-subtle ml-4 font-medium">
                     <span className="text-default">{team.name}</span>
-                    <span className="ml-3 break-all">/team/{team.slug}</span>
+                    <span className="ml-3 break-all">/b/{team.slug}</span>
                   </div>
                 </div>
               </Cell>

@@ -271,7 +271,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters) => {
           let slug;
 
           // In an Org, a team can be accessed without /team prefix as well as with /team prefix
-          slug = team.slug ? (!team.parentId ? `team/${team.slug}` : `${team.slug}`) : null;
+          slug = team.slug ? (!team.parentId ? `b/${team.slug}` : `${team.slug}`) : null;
 
           const eventTypes = await Promise.all(team.eventTypes.map(mapEventType));
           const teamParentMetadata = team.parent ? teamMetadataSchema.parse(team.parent.metadata) : null;

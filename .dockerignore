@@ -2,6 +2,10 @@
 node_modules
 **/node_modules
 
+# Secrets — nunca hornear en imagenes
+.env*
+!.env.example
+
 # Build outputs
 .next
 **/.next

@@ -24,12 +24,12 @@ const getDisplayUrl = (
 ): string => {
   if (orgSlug) {
     return teamSlug !== undefined
-      ? `${orgSlug}.${""}/team/${teamSlug || ""}`
+      ? `${orgSlug}.${""}/b/${teamSlug || ""}`
       : `${orgSlug}.${""}/${username || ""}`;
   }
 
   const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
-  return teamSlug !== undefined ? `${webappUrl}/team/${teamSlug || ""}` : `${webappUrl}/${username || ""}`;
+  return teamSlug !== undefined ? `${webappUrl}/b/${teamSlug || ""}` : `${webappUrl}/${username || ""}`;
 };
 
 export const OnboardingBrowserView = ({

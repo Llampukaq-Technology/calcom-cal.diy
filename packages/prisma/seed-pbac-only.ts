@@ -28,7 +28,7 @@ async function main() {
     console.log(`\n🌐 Access URLs:`);
     console.log(`Organization: ${process.env.NEXT_PUBLIC_WEBAPP_URL}/org/${result.organization.slug}`);
     if (result.team) {
-      console.log(`Team: ${process.env.NEXT_PUBLIC_WEBAPP_URL}/team/${result.team.slug}`);
+      console.log(`Team: ${process.env.NEXT_PUBLIC_WEBAPP_URL}/b/${result.team.slug}`);
     }
   } catch (error) {
     console.error("❌ Error creating PBAC organization:", error);

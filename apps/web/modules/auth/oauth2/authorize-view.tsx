@@ -262,9 +262,9 @@ export function Authorize() {
                 clientId: client_id as string,
                 scopes,
                 redirectUri: client.redirectUri,
-                teamSlug: selectedAccount?.value.startsWith("team/")
-                  ? selectedAccount?.value.substring(5)
-                  : undefined, // team account starts with /team/<slug>
+                teamSlug: selectedAccount?.value.startsWith("b/")
+                  ? selectedAccount?.value.substring(2)
+                  : undefined, // team account starts with /b/<slug>
                 codeChallenge: code_challenge || undefined,
                 codeChallengeMethod: (code_challenge_method as "S256") || undefined,
                 state,

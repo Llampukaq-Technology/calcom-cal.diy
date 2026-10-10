@@ -332,7 +332,7 @@ const nextConfig = (phase: string): NextConfig => {
         },
         {
           source: "/org/:slug",
-          destination: "/team/:slug",
+          destination: "/b/:slug",
         },
         {
           source: "/org/:orgSlug/avatar.png",
@@ -340,6 +340,10 @@ const nextConfig = (phase: string): NextConfig => {
         },
         {
           source: "/team/:teamname/avatar.png",
+          destination: "/api/user/avatar?teamname=:teamname",
+        },
+        {
+          source: "/b/:teamname/avatar.png",
           destination: "/api/user/avatar?teamname=:teamname",
         },
         {
@@ -536,13 +540,25 @@ const nextConfig = (phase: string): NextConfig => {
           permanent: true,
         },
         {
-          source: "/settings/teams",
-          destination: "/teams",
+          source: "/settings/admin",
+          destination: "/settings/admin/flags",
           permanent: true,
         },
         {
-          source: "/settings/admin",
-          destination: "/settings/admin/flags",
+          // Cal.diy uses /b/ (business) as the public team booking prefix.
+          // Single-segment /teams/:slug keeps /teams/invite/:token (management UI) unaffected.
+          source: "/teams/:slug",
+          destination: "/b/:slug",
+          permanent: true,
+        },
+        {
+          source: "/team/:slug",
+          destination: "/b/:slug",
+          permanent: true,
+        },
+        {
+          source: "/team/:slug/:type",
+          destination: "/b/:slug/:type",
           permanent: true,
         },
         {

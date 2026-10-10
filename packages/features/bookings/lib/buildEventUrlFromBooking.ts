@@ -43,7 +43,7 @@ export async function buildEventUrlFromBooking(booking: {
   }
 
   if (eventTeam?.slug) {
-    return `${bookerUrl}/team/${eventTeam.slug}/${eventSlug}`;
+    return `${bookerUrl}/b/${eventTeam.slug}/${eventSlug}`;
   }
 
   const username = profileEnrichedBookingUser?.profile?.username;
