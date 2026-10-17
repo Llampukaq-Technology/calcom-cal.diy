@@ -11,8 +11,8 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { Label, TextField } from "@calcom/ui/components/form";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { TextField } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -72,43 +72,40 @@ const CreateTeamDialog = ({ isOpen, onExit }: { isOpen: boolean; onExit: () => v
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onExit()}>
-      <DialogContent type="creation">
-        <DialogHeader title={t("teams_new_team")} subtitle={t("create_new_team_description")} />
+      <DialogContent
+        type="creation"
+        enableOverflow
+        title={t("teams_new_team")}
+        description={t("create_new_team_description")}>
         <div className="flex flex-col gap-4">
-          <div>
-            <Label htmlFor="team-name">{t("team_name")}</Label>
-            <TextField
-              id="team-name"
-              name="team-name"
-              data-testid="team-name-input"
-              value={name}
-              onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="Acme Inc."
-            />
-          </div>
-          <div>
-            <Label htmlFor="team-slug">{t("team_url")}</Label>
-            <TextField
-              id="team-slug"
-              name="team-slug"
-              data-testid="team-slug-input"
-              value={slug}
-              onChange={(e) => handleSlugChange(e.target.value)}
-              placeholder="acme"
-              addOnLeading="/teams/"
-            />
-          </div>
-          <div>
-            <Label htmlFor="team-logo-url">{t("teams_logo_url")}</Label>
-            <TextField
-              id="team-logo-url"
-              name="team-logo-url"
-              data-testid="team-logo-url-input"
-              value={logoUrl}
-              onChange={(e) => setLogoUrl(e.target.value)}
-              placeholder="https://example.com/logo.png"
-            />
-          </div>
+          <TextField
+            id="team-name"
+            name="team-name"
+            data-testid="team-name-input"
+            label={t("team_name")}
+            value={name}
+            onChange={(e) => handleNameChange(e.target.value)}
+            placeholder="Acme Inc."
+          />
+          <TextField
+            id="team-slug"
+            name="team-slug"
+            data-testid="team-slug-input"
+            label={t("team_url")}
+            value={slug}
+            onChange={(e) => handleSlugChange(e.target.value)}
+            placeholder="acme"
+            addOnLeading="/teams/"
+          />
+          <TextField
+            id="team-logo-url"
+            name="team-logo-url"
+            data-testid="team-logo-url-input"
+            label={t("teams_logo_url")}
+            value={logoUrl}
+            onChange={(e) => setLogoUrl(e.target.value)}
+            placeholder="https://example.com/logo.png"
+          />
         </div>
         <DialogFooter>
           <Button type="button" color="minimal" onClick={onExit} disabled={createMutation.isPending}>
