@@ -80,6 +80,8 @@ services:
       - DATABASE_URL=postgresql://calcom:5ccb2dacc1e2187014b68aa332dbe227@database:5432/calcom
       - DATABASE_DIRECT_URL=postgresql://calcom:5ccb2dacc1e2187014b68aa332dbe227@database:5432/calcom
       - NEXTAUTH_URL=http://localhost:3000
+      # El .env apunta a localhost:5555 (puerto del compose de producción); en dev la API es el servicio `api` en 3002.
+      - NEXT_PUBLIC_API_V2_URL=http://api:3002/api/v2
       - WATCHPACK_POLLING=true
     depends_on:
       database:
@@ -98,6 +100,7 @@ services:
     # de node_modules del monorepo. Compila y queda en watch (NestJS).
     command: >
       sh -c "while [ ! -d node_modules/@nestjs ] ; do sleep 5 ; done ;
+             command -v ps >/dev/null || (apt-get update -qq && apt-get install -y -qq procps >/dev/null) ;
              node .yarn/releases/yarn-4.12.0.cjs prisma generate &&
              node .yarn/releases/yarn-4.12.0.cjs workspace @calcom/api-v2 run dev:no-docker"
     ports:
