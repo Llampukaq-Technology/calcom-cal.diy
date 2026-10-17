@@ -1,5 +1,6 @@
 import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -21,6 +22,7 @@ export function NewScheduleButton({
 }) {
   const router = useRouter();
   const { t } = useLocale();
+  const [isOpen, setIsOpen] = useState(false);
 
   const form = useForm<{
     name: string;
@@ -30,6 +32,7 @@ export function NewScheduleButton({
 
   const createMutation = trpc.viewer.availability.schedule.create.useMutation({
     onSuccess: async ({ schedule }) => {
+      setIsOpen(false);
       await router.push(`/availability/${schedule.id}${fromEventType ? "?fromEventType=true" : ""}`);
       showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
       revalidateAvailabilityList();
@@ -59,7 +62,7 @@ export function NewScheduleButton({
   });
 
   return (
-    <Dialog name={name} clearQueryParamsOnClose={["copy-schedule-id"]}>
+    <Dialog name={name} open={isOpen} onOpenChange={setIsOpen} clearQueryParamsOnClose={["copy-schedule-id"]}>
       <DialogTrigger asChild>
         <Button variant="fab" data-testid={name} StartIcon="plus" size="sm">
           {t("new")}
