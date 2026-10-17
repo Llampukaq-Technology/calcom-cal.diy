@@ -174,31 +174,6 @@ export const BookEventForm = ({
           </div>
         ) : null}
 
-        {!isPlatform && (
-          <div className="my-3 w-full text-xs text-subtle">
-            <ServerTrans
-              t={t}
-              i18nKey="signing_up_terms"
-              values={{ appName: APP_NAME }}
-              components={[
-                <Link
-                  className="text-emphasis hover:underline"
-                  key="terms"
-                  href={`${WEBSITE_TERMS_URL}`}
-                  target="_blank">
-                  Terms
-                </Link>,
-                <Link
-                  className="text-emphasis hover:underline"
-                  key="privacy"
-                  href={`${WEBSITE_PRIVACY_POLICY_URL}`}
-                  target="_blank">
-                  Privacy Policy.
-                </Link>,
-              ]}
-            />
-          </div>
-        )}
 
         {isPlatformBookerEmbed && (
           <div className="my-3 w-full text-xs text-subtle">
