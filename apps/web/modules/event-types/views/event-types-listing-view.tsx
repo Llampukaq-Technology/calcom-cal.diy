@@ -910,7 +910,7 @@ const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTe
   );
 };
 
-const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
+const CTA = ({ profileOptions, teamId }: { profileOptions: ProfileOption[]; teamId: number | null }) => {
   const { t } = useLocale();
   const { searchTerm, setSearchTerm } = useSearchContext();
 
@@ -932,7 +932,11 @@ const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
       />
       <Button
         data-testid="new-event-type"
-        href={`?dialog=new&eventPage=${profileOptions[0]?.slug ?? ""}`}>
+        href={
+          teamId
+            ? `?dialog=new&eventPage=${profileOptions.find((p) => p.teamId === teamId)?.slug ?? ""}&teamId=${teamId}`
+            : `?dialog=new&eventPage=${profileOptions[0]?.slug ?? ""}`
+        }>
         {t("new")}
       </Button>
       <CreateEventTypeDialog profileOptions={profileOptions} />
@@ -1003,6 +1007,7 @@ type Props = {
 };
 
 export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
+  const { data } = useTypedQuery(querySchema);
   const profileOptions =
     userEventGroupsData.profiles
       ?.filter((profile) => !profile.readOnly)
@@ -1043,7 +1048,7 @@ export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
         };
       }) ?? [];
 
-  return <CTA profileOptions={profileOptions} />;
+  return <CTA profileOptions={profileOptions} teamId={data.teamId} />;
 };
 
 const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
