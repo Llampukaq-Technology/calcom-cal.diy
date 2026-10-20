@@ -80,6 +80,7 @@ services:
       - DATABASE_URL=postgresql://calcom:5ccb2dacc1e2187014b68aa332dbe227@database:5432/calcom
       - DATABASE_DIRECT_URL=postgresql://calcom:5ccb2dacc1e2187014b68aa332dbe227@database:5432/calcom
       - NEXTAUTH_URL=http://localhost:3000
+      - NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000
       # El .env apunta a localhost:5555 (puerto del compose de producción); en dev la API es el servicio `api` en 3002.
       - NEXT_PUBLIC_API_V2_URL=http://api:3002/api/v2
       - WATCHPACK_POLLING=true
